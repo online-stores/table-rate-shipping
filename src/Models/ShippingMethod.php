@@ -2,7 +2,7 @@
 
 namespace Lunar\Shipping\Models;
 
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -100,7 +100,7 @@ class ShippingMethod extends Base
         });
     }
 
-    public function isAvailable(?Carbon $now = null): bool
+    public function isAvailable(?CarbonInterface $now = null): bool
     {
         $now = $now ?? now();
         $schedule = $this->data['schedule'] ?? null;
