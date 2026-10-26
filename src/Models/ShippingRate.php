@@ -38,6 +38,10 @@ class ShippingRate extends Base implements Purchasable
      */
     protected $guarded = [];
 
+    protected $casts = [
+        'enabled' => 'boolean',
+    ];
+
     private ?TaxClass $resolvedTaxClass;
 
     protected static function booted()
