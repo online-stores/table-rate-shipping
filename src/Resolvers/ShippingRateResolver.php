@@ -183,8 +183,9 @@ class ShippingRateResolver
 
     /**
      * Return the shipping methods applicable to the cart, from the most
-     * specific zones covering the address that have any: a city zone's
-     * rates replace its state's, and a state zone's replace its country's.
+     * specific zones covering the address that offer the cart anything: a
+     * city zone's rates replace its state's, and a state zone's replace its
+     * country's. A rate counts only if its driver gives the cart an option.
      */
     public function get(): Collection
     {
@@ -272,7 +273,9 @@ class ShippingRateResolver
 
             $shippingRatesBySpecificity->put(
                 $specificity,
-                $shippingRatesBySpecificity->get($specificity, collect())->merge($zoneShippingRates->filter())
+                $shippingRatesBySpecificity->get($specificity, collect())->merge(
+                    $zoneShippingRates->filter(fn ($rate) => $rate->getShippingOption($this->cart) !== null)
+                )
             );
         }
 
