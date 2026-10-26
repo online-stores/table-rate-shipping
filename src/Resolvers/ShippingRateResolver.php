@@ -165,20 +165,27 @@ class ShippingRateResolver
      */
     public function get(): Collection
     {
-        if (! $this->postcode || ! $this->country) {
+        if (! $this->country) {
             return collect();
         }
 
-        $zones = Shipping::zones()->country(
+        // Countries without postcodes (Honduras, for Neos) still match their country and state zones.
+        $zoneResolver = Shipping::zones()->country(
             $this->country
         )->state(
             State::whereName($this->state)->first()
-        )->postcode(
-            new PostcodeLookup(
-                country: $this->country,
-                postcode: $this->postcode
-            )
-        )->get();
+        );
+
+        if ($this->postcode) {
+            $zoneResolver->postcode(
+                new PostcodeLookup(
+                    country: $this->country,
+                    postcode: $this->postcode
+                )
+            );
+        }
+
+        $zones = $zoneResolver->get();
 
         $shippingRates = collect();
 
