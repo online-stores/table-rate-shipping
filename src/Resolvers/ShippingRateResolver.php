@@ -238,7 +238,7 @@ class ShippingRateResolver
                         return true;
                     }
 
-                    return ! $method->isAvailable();
+                    return ! $method->isAvailable(now(config('lunar.shipping-tables.timezone') ?: config('app.timezone')));
                 })
                 ->reject(function ($rate) {
                     if ($this->allCartItemsAreInStock || ! ($rate->shippingMethod->stock_available ?? false)) {

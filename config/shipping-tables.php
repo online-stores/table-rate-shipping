@@ -11,4 +11,9 @@ return [
      */
     'shipping_rate_tax_calculation' => 'default',
 
+    /*
+     * The timezone a method's schedule is read in. Null uses the app's.
+     */
+    'timezone' => null,
+
 ];
