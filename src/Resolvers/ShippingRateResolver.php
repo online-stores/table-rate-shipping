@@ -182,7 +182,9 @@ class ShippingRateResolver
     }
 
     /**
-     * Return the shipping methods applicable to the cart.
+     * Return the shipping methods applicable to the cart, from the most
+     * specific zones covering the address that have any: a city zone's
+     * rates replace its state's, and a state zone's replace its country's.
      */
     public function get(): Collection
     {
@@ -216,7 +218,7 @@ class ShippingRateResolver
 
         $zones = $zoneResolver->get();
 
-        $shippingRates = collect();
+        $shippingRatesBySpecificity = collect();
 
         foreach ($zones as $zone) {
             $zoneShippingRates = $zone->rates
@@ -266,15 +268,34 @@ class ShippingRateResolver
                     return false;
                 });
 
-            foreach ($zoneShippingRates as $shippingRate) {
-                $shippingRates->push(
-                    $shippingRate
-                );
-            }
+            $specificity = $this->specificity($zone->type);
+
+            $shippingRatesBySpecificity->put(
+                $specificity,
+                $shippingRatesBySpecificity->get($specificity, collect())->merge($zoneShippingRates->filter())
+            );
         }
 
-        return $shippingRates->filter()->unique(function ($rate) {
+        $shippingRates = $shippingRatesBySpecificity
+            ->filter(fn (Collection $rates) => $rates->isNotEmpty())
+            ->sortKeysDesc()
+            ->first() ?? collect();
+
+        return $shippingRates->unique(function ($rate) {
             return $rate->shippingMethod->code;
         });
+    }
+
+    /**
+     * How narrowly a zone type covers an address.
+     */
+    protected function specificity(string $zoneType): int
+    {
+        return match ($zoneType) {
+            'cities', 'postcodes' => 3,
+            'states' => 2,
+            'countries' => 1,
+            default => 0,
+        };
     }
 }
