@@ -80,7 +80,7 @@ class ShippingMethod extends Base
      * Each day entry has: enabled (bool), from (time string "H:i"), to (time string "H:i").
      * When no schedule is configured the method is always available.
      */
-    public function scopeAvailableAt(Builder $query, Carbon $now): Builder
+    public function scopeAvailableAt(Builder $query, CarbonInterface $now): Builder
     {
         return $query->where(function ($query) use ($now) {
             $dayKey = (string) $now->isoWeekday();
