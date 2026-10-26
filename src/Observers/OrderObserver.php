@@ -24,9 +24,10 @@ class OrderObserver
 
     protected function updateShippingZone(Order $order): void
     {
-        $shippingAddress = $order->shippingAddress ?: $order->cart?->shippingAddress;
+        // Queried rather than loaded, so an order observed before its addresses exist doesn't keep a missing one.
+        $shippingAddress = $order->shippingAddress()->first() ?: $order->cart()->first()?->shippingAddress()->first();
 
-        if ($shippingAddress && $shippingAddress->postcode) {
+        if ($shippingAddress && $shippingAddress->country && $shippingAddress->postcode) {
             $postcodeLookup = new PostcodeLookup(
                 $shippingAddress->country,
                 $shippingAddress->postcode
