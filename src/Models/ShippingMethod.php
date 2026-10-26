@@ -17,6 +17,21 @@ use Lunar\Shipping\Database\Factories\ShippingMethodFactory;
 use Lunar\Shipping\Facades\Shipping;
 use Lunar\Shipping\Interfaces\ShippingRateInterface;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property ?string $description
+ * @property ?string $code
+ * @property bool $enabled
+ * @property bool $stock_available
+ * @property ?string $min_weight
+ * @property ?string $max_weight
+ * @property ?string $weight_unit
+ * @property ?\Illuminate\Database\Eloquent\Casts\ArrayObject<array-key, mixed> $data
+ * @property string $driver
+ * @property ?\Illuminate\Support\Carbon $created_at
+ * @property ?\Illuminate\Support\Carbon $updated_at
+ */
 class ShippingMethod extends Base
 {
     use HasCustomerGroups;
