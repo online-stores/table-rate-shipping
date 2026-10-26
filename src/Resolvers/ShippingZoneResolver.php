@@ -3,6 +3,7 @@
 namespace Lunar\Shipping\Resolvers;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Lunar\Core\Models\Country;
 use Lunar\Core\Models\State;
 use Lunar\Shipping\DataTransferObjects\PostcodeLookup;
@@ -19,6 +20,13 @@ class ShippingZoneResolver
      * The state to use when resolving zones.
      */
     protected ?State $state = null;
+
+    /**
+     * The city to use when resolving zones, with the state it is in.
+     */
+    protected ?string $city = null;
+
+    protected ?State $cityState = null;
 
     /**
      * The postcode lookup to use when resolving zones.
@@ -56,6 +64,19 @@ class ShippingZoneResolver
     {
         $this->state = $state;
         $this->types->push('states');
+
+        return $this;
+    }
+
+    /**
+     * Set the city to use when resolving, with its state: cities in
+     * different states can share a name.
+     */
+    public function city(?string $name, ?State $state = null): self
+    {
+        $this->city = $name;
+        $this->cityState = $state;
+        $this->types->push('cities');
 
         return $this;
     }
@@ -112,6 +133,33 @@ class ShippingZoneResolver
             }
         });
 
-        return $query->get();
+        return $query->get()->merge($this->cityZones())->unique('id')->values();
+    }
+
+    /**
+     * The `cities` zones covering the city in its state. Names are compared
+     * in PHP, ignoring case and accents, so any database matches alike.
+     */
+    protected function cityZones(): Collection
+    {
+        if (blank($this->city)) {
+            return collect();
+        }
+
+        $city = $this->normalize($this->city);
+
+        return ShippingZone::query()
+            ->whereType('cities')
+            ->with(['cities' => fn ($query) => $query->where('state_id', $this->cityState?->id)])
+            ->whereHas('cities', fn ($query) => $query->where('state_id', $this->cityState?->id))
+            ->get()
+            ->filter(fn (ShippingZone $zone) => $zone->cities->contains(
+                fn ($zoneCity) => $this->normalize($zoneCity->name) === $city
+            ));
+    }
+
+    protected function normalize(string $name): string
+    {
+        return Str::of($name)->ascii()->lower()->squish()->toString();
     }
 }

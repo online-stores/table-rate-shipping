@@ -14,17 +14,18 @@ use Lunar\Shipping\Models\ShippingZone;
  * - `countries` — country ids replacing the zone's country coverage
  * - `states` — state ids replacing the zone's state coverage
  * - `postcodes` — postcode strings replacing the postcode coverage
+ * - `cities` — `state_id` and `name` pairs replacing the city coverage
  * - `exclusion_lists` — exclusion list ids replacing the attached lists
  *
  * An absent key leaves that collection untouched. Coverage the zone's type
  * does not read is cleared regardless, so a zone switched from postcodes to
  * countries does not keep stale postcodes that the resolver would ignore.
- * A state or postcode zone still carries its single parent country under
+ * A state, postcode or city zone still carries its single parent country under
  * `countries`, as the Filament form has always stored it.
  */
 class UpdateShippingZone implements UpdatesShippingZone
 {
-    public const TYPES = ['unrestricted', 'countries', 'states', 'postcodes'];
+    public const TYPES = ['unrestricted', 'countries', 'states', 'postcodes', 'cities'];
 
     /**
      * @param  array<string, mixed>  $attributes
@@ -34,11 +35,12 @@ class UpdateShippingZone implements UpdatesShippingZone
         $countries = $attributes['countries'] ?? null;
         $states = $attributes['states'] ?? null;
         $postcodes = $attributes['postcodes'] ?? null;
+        $cities = $attributes['cities'] ?? null;
         $exclusionLists = $attributes['exclusion_lists'] ?? null;
 
-        unset($attributes['countries'], $attributes['states'], $attributes['postcodes'], $attributes['exclusion_lists']);
+        unset($attributes['countries'], $attributes['states'], $attributes['postcodes'], $attributes['cities'], $attributes['exclusion_lists']);
 
-        DB::transaction(function () use ($shippingZone, $attributes, $countries, $states, $postcodes, $exclusionLists): void {
+        DB::transaction(function () use ($shippingZone, $attributes, $countries, $states, $postcodes, $cities, $exclusionLists): void {
             $shippingZone->update($attributes);
 
             $type = $shippingZone->type;
@@ -59,6 +61,18 @@ class UpdateShippingZone implements UpdatesShippingZone
                 $shippingZone->postcodes()->delete();
             } elseif ($postcodes !== null) {
                 $this->syncPostcodes($shippingZone, $postcodes);
+            }
+
+            if ($type !== 'cities') {
+                $shippingZone->cities()->delete();
+            } elseif ($cities !== null) {
+                $shippingZone->cities()->delete();
+                $shippingZone->cities()->createMany(
+                    collect($cities)->map(fn (array $city) => [
+                        'state_id' => $city['state_id'] ?? null,
+                        'name' => trim($city['name']),
+                    ])->filter(fn (array $city) => $city['name'] !== '')->all()
+                );
             }
 
             if ($exclusionLists !== null) {

@@ -39,6 +39,11 @@ class ShippingRateResolver
     protected ?string $postcode = null;
 
     /**
+     * The city to use when resolving.
+     */
+    protected ?string $city = null;
+
+    /**
      * Whether all cart items are in stock.
      */
     protected ?bool $allCartItemsAreInStock = null;
@@ -98,6 +103,9 @@ class ShippingRateResolver
             $this->state(
                 $shippingMeta['state'] ?? null
             );
+            $this->city(
+                $shippingMeta['city'] ?? null
+            );
 
             return $this;
         }
@@ -111,6 +119,9 @@ class ShippingRateResolver
             );
             $this->state(
                 $shippingAddress->state
+            );
+            $this->city(
+                $shippingAddress->city
             );
         }
 
@@ -130,6 +141,16 @@ class ShippingRateResolver
     public function state($state): self
     {
         $this->state = $state;
+
+        return $this;
+    }
+
+    /**
+     * Set the value for the city.
+     */
+    public function city(?string $city): self
+    {
+        $this->city = $city;
 
         return $this;
     }
@@ -170,11 +191,19 @@ class ShippingRateResolver
         }
 
         // Countries without postcodes (Honduras, for Neos) still match their country and state zones.
+        $state = $this->state
+            ? State::where('country_id', $this->country->id)->whereName($this->state)->first()
+            : null;
+
         $zoneResolver = Shipping::zones()->country(
             $this->country
         )->state(
-            State::whereName($this->state)->first()
+            $state
         );
+
+        if ($this->city) {
+            $zoneResolver->city($this->city, $state);
+        }
 
         if ($this->postcode) {
             $zoneResolver->postcode(

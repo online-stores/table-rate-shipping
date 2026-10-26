@@ -44,6 +44,7 @@ class ShippingZone extends Base
             $shippingZone->states()->detach();
             $shippingZone->shippingExclusions()->detach();
             $shippingZone->postcodes()->delete();
+            $shippingZone->cities()->delete();
             DB::commit();
         });
     }
@@ -95,6 +96,14 @@ class ShippingZone extends Base
     public function postcodes(): HasMany
     {
         return $this->hasMany(ShippingZonePostcode::class);
+    }
+
+    /**
+     * Return the cities relationship.
+     */
+    public function cities(): HasMany
+    {
+        return $this->hasMany(ShippingZoneCity::class);
     }
 
     public function rates(): HasMany
