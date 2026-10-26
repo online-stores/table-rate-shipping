@@ -68,6 +68,9 @@ class ShippingMethod extends Base
         return ShippingMethodFactory::new();
     }
 
+    /**
+     * @return HasMany<ShippingRate, $this>
+     */
     public function shippingRates(): HasMany
     {
         return $this->hasMany(ShippingRate::class);
@@ -136,6 +139,7 @@ class ShippingMethod extends Base
 
     /**
      * Return the customer groups relationship.
+     * @return BelongsToMany<CustomerGroup, $this>
      */
     public function customerGroups(): BelongsToMany
     {

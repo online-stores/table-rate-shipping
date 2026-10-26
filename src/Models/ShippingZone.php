@@ -13,6 +13,13 @@ use Lunar\Core\Models\Order;
 use Lunar\Core\Models\State;
 use Lunar\Shipping\Database\Factories\ShippingZoneFactory;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $type
+ * @property ?\Illuminate\Support\Carbon $created_at
+ * @property ?\Illuminate\Support\Carbon $updated_at
+ */
 class ShippingZone extends Base
 {
     use HasFactory;
@@ -51,6 +58,7 @@ class ShippingZone extends Base
 
     /**
      * Return the shipping methods relationship.
+     * @return HasMany<ShippingMethod, $this>
      */
     public function shippingMethods(): HasMany
     {
@@ -59,6 +67,7 @@ class ShippingZone extends Base
 
     /**
      * Return the countries relationship.
+     * @return BelongsToMany<Country, $this>
      */
     public function countries(): BelongsToMany
     {
@@ -70,6 +79,7 @@ class ShippingZone extends Base
 
     /**
      * Return the countries relationship.
+     * @return BelongsToMany<Order, $this>
      */
     public function orders(): BelongsToMany
     {
@@ -81,6 +91,7 @@ class ShippingZone extends Base
 
     /**
      * Return the states relationship.
+     * @return BelongsToMany<State, $this>
      */
     public function states(): BelongsToMany
     {
@@ -92,6 +103,7 @@ class ShippingZone extends Base
 
     /**
      * Return the postcodes relationship.
+     * @return HasMany<ShippingZonePostcode, $this>
      */
     public function postcodes(): HasMany
     {
@@ -100,17 +112,24 @@ class ShippingZone extends Base
 
     /**
      * Return the cities relationship.
+     * @return HasMany<ShippingZoneCity, $this>
      */
     public function cities(): HasMany
     {
         return $this->hasMany(ShippingZoneCity::class);
     }
 
+    /**
+     * @return HasMany<ShippingRate, $this>
+     */
     public function rates(): HasMany
     {
         return $this->hasMany(ShippingRate::class);
     }
 
+    /**
+     * @return BelongsToMany<ShippingExclusionList, $this>
+     */
     public function shippingExclusions(): BelongsToMany
     {
         return $this->belongsToMany(

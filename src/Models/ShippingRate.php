@@ -16,6 +16,14 @@ use Lunar\Core\Models\TaxClass;
 use Lunar\Shipping\Database\Factories\ShippingRateFactory;
 use Lunar\Shipping\DataTransferObjects\ShippingOptionRequest;
 
+/**
+ * @property int $id
+ * @property int $shipping_method_id
+ * @property int $shipping_zone_id
+ * @property bool $enabled
+ * @property ?\Illuminate\Support\Carbon $created_at
+ * @property ?\Illuminate\Support\Carbon $updated_at
+ */
 class ShippingRate extends Base implements Purchasable
 {
     use HasFactory;
@@ -49,11 +57,17 @@ class ShippingRate extends Base implements Purchasable
         return ShippingRateFactory::new();
     }
 
+    /**
+     * @return BelongsTo<ShippingZone, $this>
+     */
     public function shippingZone(): BelongsTo
     {
         return $this->belongsTo(ShippingZone::class);
     }
 
+    /**
+     * @return BelongsTo<ShippingMethod, $this>
+     */
     public function shippingMethod(): BelongsTo
     {
         return $this->belongsTo(ShippingMethod::class);

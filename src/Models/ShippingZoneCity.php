@@ -11,6 +11,13 @@ use Lunar\Shipping\Database\Factories\ShippingZoneCityFactory;
 /**
  * A city a `cities` zone covers, with its state, since cities in different
  * states can share a name.
+ *
+ * @property int $id
+ * @property int $shipping_zone_id
+ * @property ?int $state_id
+ * @property string $name
+ * @property ?\Illuminate\Support\Carbon $created_at
+ * @property ?\Illuminate\Support\Carbon $updated_at
  */
 class ShippingZoneCity extends Base
 {
@@ -34,6 +41,7 @@ class ShippingZoneCity extends Base
 
     /**
      * Return the shipping zone relationship.
+     * @return BelongsTo<ShippingZone, $this>
      */
     public function shippingZone(): BelongsTo
     {
@@ -42,6 +50,7 @@ class ShippingZoneCity extends Base
 
     /**
      * Return the state relationship.
+     * @return BelongsTo<State, $this>
      */
     public function state(): BelongsTo
     {
