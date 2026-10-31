@@ -85,7 +85,10 @@ class ShippingServiceProvider extends ServiceProvider
             $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         }
 
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'shipping');
+        // The only views are Filament widgets; without Filament, view:cache can't compile them.
+        if (class_exists(\Filament\Widgets\Widget::class)) {
+            $this->loadViewsFrom(__DIR__.'/../resources/views', 'shipping');
+        }
 
         $shippingModifiers->add(
             ShippingModifier::class,
