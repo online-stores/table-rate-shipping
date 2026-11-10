@@ -4,6 +4,7 @@ namespace Lunar\Shipping\Models;
 
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\ArrayObject;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -27,7 +28,7 @@ use Lunar\Shipping\Interfaces\ShippingRateInterface;
  * @property ?string $min_weight
  * @property ?string $max_weight
  * @property ?string $weight_unit
- * @property ?\Illuminate\Database\Eloquent\Casts\ArrayObject<array-key, mixed> $data
+ * @property ?ArrayObject<string, mixed> $data
  * @property string $driver
  * @property ?\Illuminate\Support\Carbon $created_at
  * @property ?\Illuminate\Support\Carbon $updated_at
