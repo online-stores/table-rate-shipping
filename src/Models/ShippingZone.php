@@ -45,7 +45,7 @@ class ShippingZone extends Base
     {
         static::deleting(function (self $shippingZone) {
             DB::beginTransaction();
-            $shippingZone->rates()->delete();
+            $shippingZone->rates()->get()->each->delete();
             $shippingZone->countries()->detach();
             $shippingZone->orders()->detach();
             $shippingZone->states()->detach();

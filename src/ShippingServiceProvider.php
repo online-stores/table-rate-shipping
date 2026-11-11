@@ -3,13 +3,18 @@
 namespace Lunar\Shipping;
 
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Routing\Events\RouteMatched;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Inertia\Inertia;
 use Lunar\Core\Facades\Discounts;
 use Lunar\Core\Facades\ModelManifest;
 use Lunar\Core\Models\CustomerGroup;
 use Lunar\Core\Models\Order;
 use Lunar\Core\Models\Product;
 use Lunar\Core\Modifiers\ShippingModifiers;
+use Lunar\Panel\Facades\Panel;
+use Lunar\Panel\PanelManager;
 use Lunar\Shipping\Actions\ShippingExclusionLists\CreateShippingExclusionList;
 use Lunar\Shipping\Actions\ShippingExclusionLists\DeleteShippingExclusionList;
 use Lunar\Shipping\Actions\ShippingExclusionLists\UpdateShippingExclusionList;
@@ -33,6 +38,7 @@ use Lunar\Shipping\Models\ShippingRate;
 use Lunar\Shipping\Models\ShippingZone;
 use Lunar\Shipping\Models\ShippingZonePostcode;
 use Lunar\Shipping\Observers\OrderObserver;
+use Lunar\Shipping\Panel\ShippingSection;
 use Lunar\Shipping\Resolvers\PostcodeResolver;
 
 class ShippingServiceProvider extends ServiceProvider
@@ -127,6 +133,23 @@ class ShippingServiceProvider extends ServiceProvider
         ModelManifest::addDirectory(
             __DIR__.'/Models'
         );
+
+        // The Inertia panel is optional: the Settings > Shipping section
+        // registers itself only when lunarphp/panel is installed and its
+        // provider has run. An app can install the panel without loading it
+        // (dont-discover), and the facade would then have nothing to resolve.
+        if ($this->app->bound(PanelManager::class)) {
+            Panel::section(new ShippingSection);
+
+            // The ShippingDiscount type form needs the method list, and a type
+            // form has no endpoint of its own. Share it from the discount pages
+            // only: Inertia::share is global, so the host app's pages would get it too.
+            Event::listen(RouteMatched::class, function (RouteMatched $event): void {
+                if ($event->route->named('panel.discounts.*')) {
+                    Inertia::share('shippingMethods', fn () => ShippingMethod::query()->orderBy('name')->get(['id', 'name']));
+                }
+            });
+        }
 
         Relation::morphMap([
             'shipping_exclusion' => ShippingExclusion::class,
